@@ -5,6 +5,8 @@
 #include <utility>
 #include <functional>
 #include <yaml-cpp/yaml.h>
+#include <integer.hpp>
+#include <integer.yaml.hpp>
 
 class Ballot
 {

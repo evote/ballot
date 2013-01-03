@@ -2,7 +2,7 @@ project(evote-ballot)
 
 add_library(ballot SHARED ballot.cpp)
 target_link_libraries(ballot "yaml-cpp")
-
+target_link_libraries(ballot "gmp")
 
 add_library(pyballot  MODULE pyballot.cpp)
 target_link_libraries(pyballot ballot)
