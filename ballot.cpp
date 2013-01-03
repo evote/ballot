@@ -1,6 +1,7 @@
 #include "ballot.hpp"
 
-Ballot::Ballot () :
+Ballot::Ballot ( const std::string& data_dir ) :
+	data_dir ( data_dir ),
 	on (
 {
 	{"prepare_voting", std::bind ( &Ballot::on_prepare_voting, std::ref ( *this ), std::placeholders::_1 ) },
@@ -16,7 +17,7 @@ Ballot::~Ballot()
 
 }
 
-std::string Ballot::process ( std::string message )
+std::string Ballot::process ( const std::string & message )
 {
 	YAML::Node msg = YAML::Load ( message );
 	try
@@ -47,9 +48,13 @@ YAML::Node Ballot::on_prepare_voting ( const YAML::Node & msg )
 			p.call ( mpz_nextprime, p );
 		}
 		p.call ( mpz_pow_ui, p, V );
-		p.call ( mpz_nextprime, p);
-		ret["data"][0] = p;
-		ret["data"][1] = q;
+		p.call ( mpz_nextprime, p );
+		Voting voting ( *this );
+		voting.data["V"] = V;
+		voting.data["O"] = O;
+		voting.data["p"] = ret["data"][0] = p;
+		voting.data["q"] = ret["data"][1] = q;
+		ret["vuid"] = voting.vuid;
 	}
 	catch ( ... )
 	{
@@ -113,3 +118,25 @@ YAML::Node Ballot::on_stop_voting ( const YAML::Node & msg )
 	return ret;
 }
 
+Ballot::Voting::Voting ( const Ballot& parrent ) :
+	parrent ( parrent )
+{
+	do
+	{
+		this->vuid = Integer::Random ( std::string ( "Z0000000000000000" ), std::string ( "ZZZZZZZZZZZZZZZZZ" ) );
+	}
+	while ( ! YAML::LoadFile ( parrent.data_dir + "/" + this->vuid ) );
+}
+
+Ballot::Voting::Voting ( const Ballot& parrent, const std::string& vuid ) :
+	parrent ( parrent ),
+	vuid ( vuid )
+{
+	this->data = YAML::LoadFile ( parrent.data_dir + "/" + this->vuid );
+}
+
+Ballot::Voting::~Voting()
+{
+	std::ofstream ofstream ( parrent.data_dir + "/" + this->vuid );
+	ofstream << ( this->data ) << std::endl;
+}
