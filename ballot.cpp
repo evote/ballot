@@ -50,11 +50,15 @@ YAML::Node Ballot::on_prepare_voting ( const YAML::Node & msg )
 		p.call ( mpz_pow_ui, p, V );
 		p.call ( mpz_nextprime, p );
 		Voting voting ( *this );
+		ret["vuid"] = voting.vuid;
 		voting.data["V"] = V;
 		voting.data["O"] = O;
 		voting.data["p"] = ret["data"][0] = p;
 		voting.data["q"] = ret["data"][1] = q;
-		ret["vuid"] = voting.vuid;
+// 		voting.data["A"] = YAML::Node();
+// 		voting.data["B"] = YAML::Node();
+// 		voting.data["G"] = 1;
+// 		voting.data["P"] = 1;
 	}
 	catch ( ... )
 	{
@@ -72,7 +76,9 @@ YAML::Node Ballot::on_start_voting ( const YAML::Node & msg )
 
 	try
 	{
-
+		Voting voting ( *this, msg["vuid"].as<std::string>() );
+		ret["vuid"] = voting.vuid;
+		voting.data["A"] = msg["data"];
 	}
 	catch ( ... )
 	{
@@ -90,7 +96,32 @@ YAML::Node Ballot::on_take_my_vote ( const YAML::Node & msg )
 
 	try
 	{
-
+		Voting voting ( *this, msg["vuid"].as<std::string>() );
+		ret["vuid"] = voting.vuid;
+		if ( std::find ( voting.data["A"].begin(), voting.data["A"].end(), msg["data"][0] ) != voting.data["A"].end() )
+		{
+			if ( std::find ( voting.data["B"].begin(), voting.data["B"].end(), msg["data"][0] ) == voting.data["B"].end() )
+			{
+				if ( Integer::Call ( mpz_powm, voting.data["g"].as<Integer>(), ret["data"][1].as<Integer>(), voting.data["p"].as<Integer>() ) == ( Integer::Call ( mpz_powm, ret["data"][0].as<Integer>(), ret["data"][2].as<Integer>(), voting.data["p"].as<Integer>() ) * Integer::Call ( mpz_powm, ret["data"][2].as<Integer>(), ret["data"][3].as<Integer>(), voting.data["p"].as<Integer>() ) ) % voting.data["p"].as<Integer>() )
+				{
+					voting.data["B"].push_back ( msg["data"][0] );
+					voting.data["G"][0] = ( voting.data["G"][0].as<Integer>() * msg["data"][0].as<Integer>() ) % voting.data["p"].as<Integer>();
+					voting.data["P"][0] = ( voting.data["P"][0].as<Integer>() * msg["data"][1].as<Integer>() ) % voting.data["p"].as<Integer>();
+				}
+				else
+				{
+					throw "BUM";
+				}
+			}
+			else
+			{
+				throw "BUM";
+			}
+		}
+		else
+		{
+			throw "BUM";
+		}
 	}
 	catch ( ... )
 	{
@@ -140,3 +171,5 @@ Ballot::Voting::~Voting()
 	std::ofstream ofstream ( parrent.data_dir + "/" + this->vuid );
 	ofstream << ( this->data ) << std::endl;
 }
+
+
