@@ -1,0 +1,2 @@
+project(evote-ballot)
+
