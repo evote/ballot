@@ -9,6 +9,7 @@
 #include <yaml-cpp/yaml.h>
 #include <integer.hpp>
 #include <integer.yaml.hpp>
+#include <boost/range/irange.hpp>
 
 class Ballot
 {
@@ -25,24 +26,34 @@ class Ballot
 		const std::string operator() ( const std::string & );
 		~Ballot();
 	private:
-		const std::map<std::string, std::function<YAML::Node ( const YAML::Node & ) >> on;
-		YAML::Node on_prepare_voting ( const YAML::Node & );
-		YAML::Node on_start_voting ( const YAML::Node & );
-		YAML::Node on_take_my_vote ( const YAML::Node & );
-		YAML::Node on_stop_voting ( const YAML::Node & );
+		const std::map<std::string, std::function<YAML::Node & ( const YAML::Node &, YAML::Node& ) >> on;
+		YAML::Node& on_prepare_voting ( const YAML::Node &, YAML::Node& );
+		YAML::Node& on_start_voting ( const YAML::Node &, YAML::Node& );
+		YAML::Node& on_take_my_vote ( const YAML::Node &, YAML::Node& );
+		YAML::Node& on_stop_voting ( const YAML::Node &, YAML::Node& );
 	private:
-		struct Voting
+		class Voting
 		{
-			const Ballot& parrent;
-			std::string vuid;
-			YAML::Node data;
-			Voting() = delete;
-			Voting ( const Voting & ) = delete;
-			Voting ( Voting && ) = delete;
-			Voting & operator= ( const Voting & ) = delete;
-			Voting & operator= ( Voting && ) = delete;
-			Voting ( const Ballot& );
-			Voting ( const Ballot&, const std::string& );
-			~Voting();
+			private:
+				const Ballot& parrent;
+				std::string vuid;
+				uint V, O;
+				Integer p, g;
+				std::vector<Integer> A, B;
+				Integer G, P;
+			public:
+				Voting() = delete;
+				Voting ( const Voting & ) = delete;
+				Voting ( Voting && ) = delete;
+				Voting & operator= ( const Voting & ) = delete;
+				Voting & operator= ( Voting && ) = delete;
+			public:
+				Voting ( const Ballot& );
+				YAML::Node& on_prepare_voting ( const YAML::Node &, YAML::Node& );
+				YAML::Node& on_start_voting ( const YAML::Node &, YAML::Node& );
+				YAML::Node& on_take_my_vote ( const YAML::Node &, YAML::Node& );
+				YAML::Node& on_stop_voting ( const YAML::Node &, YAML::Node& );
+				Voting ( const Ballot&, const std::string& );
+				~Voting();
 		};
 };
