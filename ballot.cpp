@@ -21,7 +21,15 @@ const std::string Ballot::operator() ( const std::string & message )
 {
 	YAML::Node msg = YAML::Load ( message );
 	YAML::Node ret;
-	on.at ( msg["type"].as<std::string>() ) ( msg, ret );
+	ret["error"] = "OK";
+	try
+	{
+		on.at ( msg["type"].as<std::string>() ) ( msg, ret );
+	}
+	catch ( ... )
+	{
+		ret["error"] = "unknown";
+	}
 	return YAML::Dump ( ret );
 }
 
