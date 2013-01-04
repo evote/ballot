@@ -17,7 +17,7 @@ Ballot::~Ballot()
 
 }
 
-std::string Ballot::process ( const std::string & message )
+const std::string Ballot::operator() ( const std::string & message )
 {
 	YAML::Node msg = YAML::Load ( message );
 	try
@@ -156,7 +156,7 @@ Ballot::Voting::Voting ( const Ballot& parrent ) :
 	{
 		this->vuid = Integer::Random ( std::string ( "Z0000000000000000" ), std::string ( "ZZZZZZZZZZZZZZZZZ" ) );
 	}
-	while ( ! YAML::LoadFile ( parrent.data_dir + "/" + this->vuid ) );
+	while ( std::fstream ( parrent.data_dir + "/" + this->vuid, std::ios_base::in ).good() );
 }
 
 Ballot::Voting::Voting ( const Ballot& parrent, const std::string& vuid ) :
@@ -168,8 +168,8 @@ Ballot::Voting::Voting ( const Ballot& parrent, const std::string& vuid ) :
 
 Ballot::Voting::~Voting()
 {
-	std::ofstream ofstream ( parrent.data_dir + "/" + this->vuid );
-	ofstream << ( this->data ) << std::endl;
+	std::fstream fstream ( parrent.data_dir + "/" + this->vuid, std::ios_base::out );
+	fstream << ( this->data ) << std::endl;
 }
 
 
