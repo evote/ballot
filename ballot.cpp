@@ -27,29 +27,29 @@ const std::string Ballot::operator() ( const std::string & message )
 
 YAML::Node& Ballot::on_prepare_voting ( const YAML::Node & msg, YAML::Node & ret )
 {
-	Voting ( *this ).on_prepare_voting ( msg, ret );
 	ret["type"] = "voting_prepared";
+	Voting ( *this ).on_prepare_voting ( msg, ret );
 	return ret;
 }
 
 YAML::Node& Ballot::on_start_voting ( const YAML::Node & msg, YAML::Node & ret )
 {
-	Voting ( *this, msg["vuid"].as<std::string>() ). on_start_voting ( msg, ret );
 	ret["type"] = "voting_started";
+	Voting ( *this, msg["vuid"].as<std::string>() ). on_start_voting ( msg, ret );
 	return ret;
 }
 
 YAML::Node& Ballot::on_take_my_vote ( const YAML::Node & msg, YAML::Node & ret )
 {
-	Voting( *this, msg["vuid"].as<std::string>() ).on_take_my_vote(msg,ret);
 	ret["type"] = "vote_taken";
+	Voting( *this, msg["vuid"].as<std::string>() ).on_take_my_vote(msg,ret);
 	return ret;
 }
 
 YAML::Node& Ballot::on_stop_voting ( const YAML::Node & msg, YAML::Node & ret )
 {
-	Voting( *this, msg["vuid"].as<std::string>() ).on_stop_voting(msg,ret);
 	ret["type"] = "voting_stoped";
+	Voting( *this, msg["vuid"].as<std::string>() ).on_stop_voting(msg,ret);
 	return ret;
 }
 
@@ -101,6 +101,7 @@ Ballot::Voting::~Voting()
 
 YAML::Node& Ballot::Voting::on_prepare_voting ( const YAML::Node & msg, YAML::Node & ret )
 {
+	ret["vuid"] = this->vuid;
 	this->V = msg["data"][0].as<uint>();
 	this->O = msg["data"][1].as<uint>();
 	this->p = 1;
@@ -111,7 +112,6 @@ YAML::Node& Ballot::Voting::on_prepare_voting ( const YAML::Node & msg, YAML::No
 	}
 	this->p.call ( mpz_pow_ui, this->p, this->V );
 	this->p.call ( mpz_nextprime, this->p );
-	ret["vuid"] = this->vuid;
 	ret["p"] = this->p;
 	ret["g"] = this ->g;
 	return ret;
@@ -119,6 +119,7 @@ YAML::Node& Ballot::Voting::on_prepare_voting ( const YAML::Node & msg, YAML::No
 
 YAML::Node& Ballot::Voting::on_start_voting ( const YAML::Node & msg, YAML::Node & ret )
 {
+	ret["vuid"] = this->vuid;
 	for ( auto a : msg["data"] )
 	{
 		this->A.push_back ( a.as<Integer>() );
@@ -128,6 +129,7 @@ YAML::Node& Ballot::Voting::on_start_voting ( const YAML::Node & msg, YAML::Node
 
 YAML::Node& Ballot::Voting::on_take_my_vote ( const YAML::Node & msg, YAML::Node & ret )
 {
+	ret["vuid"] = this->vuid;
 	if ( std::find ( this->A.begin(), this->A.end(), msg["data"][0].as<Integer>() ) != this->A.end() )
 	{
 		if ( std::find ( this->B.begin(), this->B.end(), msg["data"][0].as<Integer>() ) == this->B.end() )
@@ -140,11 +142,11 @@ YAML::Node& Ballot::Voting::on_take_my_vote ( const YAML::Node & msg, YAML::Node
 			}
 		}
 	}
-	ret["vuid"] = this->vuid;
 	return ret;
 }
 
 YAML::Node& Ballot::Voting::on_stop_voting ( const YAML::Node & msg, YAML::Node & ret )
 {
+	ret["vuid"] = this->vuid;
 	return ret;
 }
