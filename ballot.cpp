@@ -56,7 +56,7 @@ YAML::Node& Ballot::on_take_my_vote ( const YAML::Node & msg, YAML::Node & ret )
 
 YAML::Node& Ballot::on_stop_voting ( const YAML::Node & msg, YAML::Node & ret )
 {
-	ret["type"] = "voting_stoped";
+	ret["type"] = "voting_stopped";
 	Voting ( *this, msg["vuid"].as<std::string>() ).on_stop_voting ( msg, ret );
 	return ret;
 }
@@ -122,8 +122,8 @@ YAML::Node& Ballot::Voting::on_prepare_voting ( const YAML::Node & msg, YAML::No
 	}
 	this->p.call ( mpz_pow_ui, this->p, this->V );
 	this->p.call ( mpz_nextprime, this->p );
-	ret["data"].push_back ( this->p );
-	ret["data"].push_back ( this->g );
+	ret["data"][0] = this->p;
+	ret["data"][1] = this->g;
 	return ret;
 }
 
@@ -161,5 +161,7 @@ YAML::Node& Ballot::Voting::on_take_my_vote ( const YAML::Node & msg, YAML::Node
 YAML::Node& Ballot::Voting::on_stop_voting ( const YAML::Node & msg, YAML::Node & ret )
 {
 	ret["vuid"] = this->vuid;
+	ret["data"][0] = G;
+	ret["data"][1] = P;
 	return ret;
 }
