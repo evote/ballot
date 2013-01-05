@@ -50,14 +50,14 @@ YAML::Node& Ballot::on_start_voting ( const YAML::Node & msg, YAML::Node & ret )
 YAML::Node& Ballot::on_take_my_vote ( const YAML::Node & msg, YAML::Node & ret )
 {
 	ret["type"] = "vote_taken";
-	Voting( *this, msg["vuid"].as<std::string>() ).on_take_my_vote(msg,ret);
+	Voting ( *this, msg["vuid"].as<std::string>() ).on_take_my_vote ( msg, ret );
 	return ret;
 }
 
 YAML::Node& Ballot::on_stop_voting ( const YAML::Node & msg, YAML::Node & ret )
 {
 	ret["type"] = "voting_stoped";
-	Voting( *this, msg["vuid"].as<std::string>() ).on_stop_voting(msg,ret);
+	Voting ( *this, msg["vuid"].as<std::string>() ).on_stop_voting ( msg, ret );
 	return ret;
 }
 
@@ -122,8 +122,8 @@ YAML::Node& Ballot::Voting::on_prepare_voting ( const YAML::Node & msg, YAML::No
 	}
 	this->p.call ( mpz_pow_ui, this->p, this->V );
 	this->p.call ( mpz_nextprime, this->p );
-	ret["data"].push_back(this->p);
-	ret["data"].push_back(this->g);
+	ret["data"].push_back ( this->p );
+	ret["data"].push_back ( this->g );
 	return ret;
 }
 
@@ -149,9 +149,12 @@ YAML::Node& Ballot::Voting::on_take_my_vote ( const YAML::Node & msg, YAML::Node
 				this->B.push_back ( msg["data"][0].as<Integer>() );
 				this->G = ( this->G * msg["data"][0].as<Integer>() ) % this->p;
 				this->P = ( this->P * msg["data"][1].as<Integer>() ) % this->p;
-			}	else ret["error"] = 3;
-		}	else ret["error"] = 2;
-	}	else ret["error"] = 1;
+			}
+			else ret["error"] = 3;
+		}
+		else ret["error"] = 2;
+	}
+	else ret["error"] = 1;
 	return ret;
 }
 

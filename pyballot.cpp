@@ -4,7 +4,7 @@
 BOOST_PYTHON_MODULE ( pyballot )
 {
 	using namespace boost::python;
-	class_<Ballot,boost::noncopyable> ( "Ballot", init<const std::string &>() )
+	class_<Ballot, boost::noncopyable> ( "Ballot", init<const std::string &>() )
 		.def ( "__call__", &Ballot::operator() );
 }
 
