@@ -112,6 +112,8 @@ YAML::Node& Ballot::Voting::on_prepare_voting ( const YAML::Node & msg, YAML::No
 	ret["vuid"] = this->vuid;
 	this->V = msg["data"][0].as<uint>();
 	this->O = msg["data"][1].as<uint>();
+	this->G = 1;
+	this->P = 1;
 	this->p = 1;
 	this->g = 3;
 	for ( uint o = 0; o < this->O; ++o )
@@ -120,8 +122,8 @@ YAML::Node& Ballot::Voting::on_prepare_voting ( const YAML::Node & msg, YAML::No
 	}
 	this->p.call ( mpz_pow_ui, this->p, this->V );
 	this->p.call ( mpz_nextprime, this->p );
-	ret["p"] = this->p;
-	ret["g"] = this ->g;
+	ret["data"].push_back(this->p);
+	ret["data"].push_back(this->g);
 	return ret;
 }
 
@@ -142,14 +144,14 @@ YAML::Node& Ballot::Voting::on_take_my_vote ( const YAML::Node & msg, YAML::Node
 	{
 		if ( std::find ( this->B.begin(), this->B.end(), msg["data"][0].as<Integer>() ) == this->B.end() )
 		{
-			if ( Integer::Call ( mpz_powm, this->g, ret["data"][1].as<Integer>(), this->p ) == ( Integer::Call ( mpz_powm, ret["data"][0].as<Integer>(), ret["data"][2].as<Integer>(), this->p ) * Integer::Call ( mpz_powm, ret["data"][2].as<Integer>(), ret["data"][3].as<Integer>(), this->p ) ) % this->p )
+			if ( Integer::Call ( mpz_powm, this->g, msg["data"][1].as<Integer>(), this->p ) == ( Integer::Call ( mpz_powm, msg["data"][0].as<Integer>(), msg["data"][2].as<Integer>(), this->p ) * Integer::Call ( mpz_powm, msg["data"][2].as<Integer>(), msg["data"][3].as<Integer>(), this->p ) ) % this->p )
 			{
 				this->B.push_back ( msg["data"][0].as<Integer>() );
 				this->G = ( this->G * msg["data"][0].as<Integer>() ) % this->p;
 				this->P = ( this->P * msg["data"][1].as<Integer>() ) % this->p;
-			}
-		}
-	}
+			}	else ret["error"] = 3;
+		}	else ret["error"] = 2;
+	}	else ret["error"] = 1;
 	return ret;
 }
 
