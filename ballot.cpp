@@ -68,7 +68,7 @@ Ballot::Voting::Voting ( const Ballot& parrent ) :
 	{
 		this->vuid = Integer::Random ( std::string ( "Z0000000000000000" ), std::string ( "ZZZZZZZZZZZZZZZZZ" ) );
 	}
-	while ( std::fstream ( parrent.data_dir + "/" + this->vuid, std::ios_base::in ).good() );
+	while ( std::fstream ( parrent.data_dir + this->vuid, std::ios_base::in ).good() );
 }
 
 Ballot::Voting::Voting ( const Ballot& parrent, const std::string& vuid ) :
@@ -82,11 +82,11 @@ Ballot::Voting::Voting ( const Ballot& parrent, const std::string& vuid ) :
 	this->g = data["g"].as<Integer>();
 	for ( auto a: data["A"] )
 	{
-		this->A.push_back ( a.as<Integer>() );
+		this->A.insert ( a.as<Integer>() );
 	}
 	for ( auto b: data["B"] )
 	{
-		this->B.push_back ( b.as<Integer>() );
+		this->B.insert ( b.as<Integer>() );
 	}
 	this->G = data["G"].as<Integer>();
 	this->P = data["P"].as<Integer>();
@@ -99,8 +99,14 @@ Ballot::Voting::~Voting()
 	data["O"] = this->O;
 	data["p"] = this->p;
 	data["g"] = this->g;
-	data["A"] = this->A;
-	data["B"] = this->B;
+	for ( auto a: this->A )
+	{
+		data["A"].push_back ( a );
+	}
+	for ( auto b: this->B )
+	{
+		data["B"].push_back ( b );
+	}
 	data["G"] = this->G;
 	data["P"] = this->P;
 	std::fstream fstream ( parrent.data_dir + "/" + this->vuid, std::ios_base::out );
@@ -112,10 +118,12 @@ YAML::Node& Ballot::Voting::on_prepare_voting ( const YAML::Node & msg, YAML::No
 	ret["vuid"] = this->vuid;
 	this->V = msg["data"][0].as<uint>();
 	this->O = msg["data"][1].as<uint>();
-	this->G = 1;
-	this->P = 1;
 	this->p = 1;
 	this->g = 3;
+	this->A = std::vector();
+	this->B = std::vector();
+	this->G = 1;
+	this->P = 1;
 	for ( uint o = 0; o < this->O; ++o )
 	{
 		this->p.call ( mpz_nextprime, this->p );
@@ -132,7 +140,7 @@ YAML::Node& Ballot::Voting::on_start_voting ( const YAML::Node & msg, YAML::Node
 	ret["vuid"] = this->vuid;
 	for ( auto a : msg["data"] )
 	{
-		this->A.push_back ( a.as<Integer>() );
+		this->A.insert ( a.as<Integer>() );
 	}
 	return ret;
 }
@@ -146,15 +154,15 @@ YAML::Node& Ballot::Voting::on_take_my_vote ( const YAML::Node & msg, YAML::Node
 		{
 			if ( Integer::Call ( mpz_powm, this->g, msg["data"][1].as<Integer>(), this->p ) == ( Integer::Call ( mpz_powm, msg["data"][0].as<Integer>(), msg["data"][2].as<Integer>(), this->p ) * Integer::Call ( mpz_powm, msg["data"][2].as<Integer>(), msg["data"][3].as<Integer>(), this->p ) ) % this->p )
 			{
-				this->B.push_back ( msg["data"][0].as<Integer>() );
+				this->B.insert ( msg["data"][0].as<Integer>() );
 				this->G = ( this->G * msg["data"][0].as<Integer>() ) % this->p;
 				this->P = ( this->P * msg["data"][1].as<Integer>() ) % this->p;
 			}
-			else ret["error"] = 3;
+			else throw "wrong_signature";
 		}
-		else ret["error"] = 2;
+		else throw "aleardy_voted";
 	}
-	else ret["error"] = 1;
+	else "not_authorized";
 	return ret;
 }
 

@@ -39,7 +39,7 @@ class Ballot
 				std::string vuid;
 				uint V, O;
 				Integer p, g;
-				std::vector<Integer> A, B;
+				std::set<Integer> A, B;
 				Integer G, P;
 			public:
 				Voting() = delete;
