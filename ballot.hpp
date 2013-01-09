@@ -35,7 +35,7 @@ class Ballot
 		class Voting
 		{
 			private:
-				const Ballot& parrent;
+				const Ballot& parent;
 				std::string vuid;
 				uint V, O;
 				Integer p, g;

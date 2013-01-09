@@ -62,7 +62,7 @@ YAML::Node& Ballot::on_stop_voting ( const YAML::Node & msg, YAML::Node & ret )
 }
 
 Ballot::Voting::Voting ( const Ballot& parrent ) :
-	parrent ( parrent )
+	parent ( parrent )
 {
 	do
 	{
@@ -72,7 +72,7 @@ Ballot::Voting::Voting ( const Ballot& parrent ) :
 }
 
 Ballot::Voting::Voting ( const Ballot& parrent, const std::string& vuid ) :
-	parrent ( parrent ),
+	parent ( parrent ),
 	vuid ( vuid )
 {
 	YAML::Node data = YAML::LoadFile ( parrent.data_dir + "/" + this->vuid );
@@ -109,7 +109,7 @@ Ballot::Voting::~Voting()
 	}
 	data["G"] = this->G;
 	data["P"] = this->P;
-	std::fstream fstream ( parrent.data_dir + "/" + this->vuid, std::ios_base::out );
+	std::fstream fstream ( parent.data_dir + "/" + this->vuid, std::ios_base::out );
 	fstream << ( data ) << std::endl;
 }
 
@@ -120,8 +120,8 @@ YAML::Node& Ballot::Voting::on_prepare_voting ( const YAML::Node & msg, YAML::No
 	this->O = msg["data"][1].as<uint>();
 	this->p = 1;
 	this->g = 3;
-	this->A = std::vector();
-	this->B = std::vector();
+	this->A = std::set<Integer>();
+	this->B = std::set<Integer>();
 	this->G = 1;
 	this->P = 1;
 	for ( uint o = 0; o < this->O; ++o )
